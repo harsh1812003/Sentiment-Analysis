@@ -1,10 +1,5 @@
 import os
-import urllib.request as request
-import zipfile
 from Sentimentanalysis.logging import logger
-from Sentimentanalysis.utils.common import get_size
-from pathlib import Path
-from Sentimentanalysis.entity import DataIngestionConfig
 import pandas as pd
 from dataclasses import dataclass
 from sklearn.model_selection import train_test_split
