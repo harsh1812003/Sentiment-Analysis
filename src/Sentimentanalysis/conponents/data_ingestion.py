@@ -5,33 +5,47 @@ from Sentimentanalysis.logging import logger
 from Sentimentanalysis.utils.common import get_size
 from pathlib import Path
 from Sentimentanalysis.entity import DataIngestionConfig
+import pandas as pd
+from dataclasses import dataclass
+from sklearn.model_selection import train_test_split
 
+@dataclass
+class DataIngestionConfig:
+    train_data_path: str=os.path.join('artifacts',"train.csv")
+    test_data_path: str=os.path.join('artifacts',"test.csv")
+    raw_data_path: str=os.path.join('artifacts',"data.csv")
 
 class DataIngestion:
-    def __init__(self, config: DataIngestionConfig):
-        self.config = config
+    def __init__(self):
+        self.ingestion_config=DataIngestionConfig()
 
+    def initiate_data_ingestion(self):
+        logger.info("Entered the data ingestion method or component")
+        try:
+            df=pd.read_csv('artifacts\data_ingestion\stock_data.csv')
+            logger.info('Read the dataset as dataframe')
 
-    
-    def download_file(self):
-        if not os.path.exists(self.config.local_data_file):
-            filename, headers = request.urlretrieve(
-                url = self.config.source_URL,
-                filename = self.config.local_data_file
+            os.makedirs(os.path.dirname(self.ingestion_config.train_data_path),exist_ok=True)
+
+            df.to_csv(self.ingestion_config.raw_data_path,index=False,header=True)
+
+            logger.info("Train test split initiated")
+            train_set,test_set=train_test_split(df,test_size=0.2,random_state=42)
+
+            train_set.to_csv(self.ingestion_config.train_data_path,index=False,header=True)
+
+            test_set.to_csv(self.ingestion_config.test_data_path,index=False,header=True)
+
+            logger.info("Inmgestion of the data iss completed")
+
+            return(
+                self.ingestion_config.train_data_path,
+                self.ingestion_config.test_data_path
+
             )
-            logger.info(f"{filename} download! with following info: \n{headers}")
-        else:
-            logger.info(f"File already exists of size: {get_size(Path(self.config.local_data_file))}")  
-
+        except Exception as e:
+            raise Exception
         
-    
-    def extract_zip_file(self):
-        """
-        zip_file_path: str
-        Extracts the zip file into the data directory
-        Function returns None
-        """
-        unzip_path = self.config.unzip_dir
-        os.makedirs(unzip_path, exist_ok=True)
-        with zipfile.ZipFile(self.config.local_data_file, 'r') as zip_ref:
-            zip_ref.extractall(unzip_path)
+if __name__=="__main__":
+    obj=DataIngestion()
+    train_data,test_data=obj.initiate_data_ingestion()
